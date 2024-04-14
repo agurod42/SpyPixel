@@ -18,8 +18,13 @@ def pixel():
     time = datetime.datetime.now()
     time = datetime.datetime.strftime(time, '%Y-%m-%d %H:%M:%S')
     ua = request.headers.get('User-Agent')
-    ip = request.environ['REMOTE_ADDR']
-     
+
+    if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        ip = request.environ['REMOTE_ADDR']
+    else:
+        ip = request.environ['HTTP_X_FORWARDED_FOR']
+    
+    print(request.headers.get('CF-Connecting-IP'))
     # Fetch geolocation data
     with urllib.request.urlopen(f"https://geolocation-db.com/jsonp/{ip}") as url:
         data = url.read().decode()
