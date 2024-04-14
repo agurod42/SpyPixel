@@ -1,3 +1,5 @@
+migrations/
+instance/
 log.txt
 .env
 ### Emacs ###
