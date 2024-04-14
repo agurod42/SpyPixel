@@ -1,5 +1,9 @@
 # Spypixel
 
+<p align="center">
+  <img src = "logo.png" width = "50%">
+</p>
+
 Spypixel is a lightweight spy pixel server crafted using Flask and SQLite, designed to provide simple yet effective tracking capabilities.
 
 ## How to run the server
