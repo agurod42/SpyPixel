@@ -1,3 +1,6 @@
+*.txt
+*.log
+*_pixel.png
 migrations/
 instance/
 log.txt

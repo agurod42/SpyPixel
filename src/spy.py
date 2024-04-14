@@ -1,10 +1,12 @@
 from src import app, db, bcrypt, login_manager
-from src.models import User, Role
+from src.models import User, Role, SpyPixel, Log
 from flask import send_file, request, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 import datetime
 import urllib.request
 import json
+
+# ----------------- User Authentication -----------------
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -32,41 +34,63 @@ def logout():
     logout_user()
     return redirect(url_for('index'))
 
-'''
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-
-        # Check if username already exists
-        existing_user = User.query.filter_by(username=username).first()
-        if existing_user:
-            flash('Username already exists. Please choose a different one.', 'error')
-            return redirect(url_for('register'))
-
-        # Create a new user
-        new_user = User(username=username, password=password)  # Note: You should hash the password before saving to the database
-        db.session.add(new_user)
-        db.session.commit()
-
-        flash('Registration successful! You can now log in.', 'success')
-        return redirect(url_for('login'))
-
-    return render_template('register.html')
-'''
-
 @app.route('/')
 def index():
     if current_user.is_authenticated and current_user.role.name == 'admin':
         return render_template('index.html', current_user=current_user)
     else:
         return render_template('index.html')
+    
 
-@app.route('/pixel')
-def pixel():
+
+
+
+# ----------------- SPY PIXEL -----------------
+
+
+
+@app.route('/create_pixel', methods=['GET', 'POST'])
+@login_required
+def create_pixel():
+    if request.method == 'POST':
+        pixel_tag = request.form['pixel_tag']
+        user_id = current_user.id
+        pixel = SpyPixel.query.filter_by(pixel_tag=pixel_tag).first()
+        if pixel:
+            flash('Pixel already exists!', 'danger')
+        else:
+            new_pixel = SpyPixel(user_id=user_id, pixel_tag=pixel_tag)
+            db.session.add(new_pixel)
+            db.session.commit()
+            flash('Pixel created!', 'success')
+
+            # Copy the pixel.png image to the media folder with the pixel_tag_pixel.png name
+            with open('/app/src/static/pixel.png', 'rb') as f:
+                with open(f'/app/src/media/{pixel_tag}_pixel.png', 'wb') as f2:
+                    f2.write(f.read())
+    return render_template('create_pixel.html', current_user=current_user)
+
+@app.route('/view_pixels')
+@login_required
+def view_pixels():
+    pixels = SpyPixel.query.filter_by(user_id=current_user.id).all()
+    return render_template('view_pixels.html', pixels=pixels, current_user=current_user)
+
+
+@app.route('/pixel/<pixel_tag>')
+def pixel(pixel_tag):
+    pixel = SpyPixel.query.filter_by(pixel_tag=pixel_tag).first()
+    if not pixel:
+        return 'Pixel tag not found', 404
+    # check if the file exists
+    try:
+        with open(f'/app/src/media/{pixel_tag}_pixel.png', 'rb') as f:
+            pass
+    except FileNotFoundError:
+        return 'Pixel image not found', 404
+
     time = datetime.datetime.now()
-    time = datetime.datetime.strftime(time, '%Y-%m-%d %H:%M:%S')
+    time_str = datetime.datetime.strftime(time, '%Y-%m-%d %H:%M:%S')
     ua = request.headers.get('User-Agent')
 
     if request.headers.get('CF-Connecting-IP') is not None:
@@ -83,11 +107,19 @@ def pixel():
         geolocation_data = json.loads(data)
     
     # Log geolocation data
-    print(f'T:{time} - IP:{ip} - Geolocation:{geolocation_data} - User-Agent:{ua}\n')
+    log_message = f'T:{time_str} - IP:{ip} - Geolocation:{geolocation_data} - User-Agent:{ua}\n'
+    print(log_message)
 
-    with open('/app/log.txt', 'a') as f:
-        f.write(f'T:{time} - IP:{ip} - Geolocation:{geolocation_data} - User-Agent:{ua}\n')
-    return send_file('media/pixel.png', mimetype='image/png')
+    with open(f'/app/log_{pixel_tag}.txt', 'a') as f:
+        f.write(log_message)
+
+    # Create a new log entry
+    log = Log(spy_pixel_id=pixel.id, time=time, ip=ip, user_agent=ua, data=geolocation_data)
+    db.session.add(log)
+    db.session.commit()
+    
+    # Serve the pixel.png image
+    return send_file(f'/app/src/media/{pixel_tag}_pixel.png', mimetype='image/png')
 
 if __name__ == '__main__':
     app.run()

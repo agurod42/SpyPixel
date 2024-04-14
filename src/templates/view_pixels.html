@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Pixels</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h2>View Pixels</h2>
+    {% for pixel in pixels %}
+        <h3>{{ pixel.pixel_tag }}</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>IP</th>
+                    <th>User Agent</th>
+                    <th>Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in pixel.logs %}
+                    <tr>
+                        <td>{{ log.time }}</td>
+                        <td>{{ log.ip }}</td>
+                        <td>{{ log.user_agent }}</td>
+                        <td>{{ log.data }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+</body>
+</html>

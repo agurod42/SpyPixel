@@ -21,6 +21,7 @@ class Role(db.Model):
 
 class SpyPixel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    pixel_tag = db.Column(db.String(100), unique=True, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     logs = db.relationship('Log', backref='spy_pixel', lazy=True)
 
