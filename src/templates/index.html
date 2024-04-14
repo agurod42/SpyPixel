@@ -18,7 +18,11 @@
 </head>
 <body>
     <div id="root">
-        <h1>Server running...</h1>
+        {% if current_user.is_authenticated %}
+            <h1>Hi {{ current_user.username }}!</h1>
+        {% else %}
+            <h1>Server running...</h1>
+        {% endif %}
     </div>
 </body>
 </html>
