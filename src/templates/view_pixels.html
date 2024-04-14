@@ -17,12 +17,91 @@
         th {
             background-color: #f2f2f2;
         }
+        #delete {
+            background-color: #ff3333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-decoration: none;
+            display: inline-block;
+
+        }
+        #delete:hover {
+            background-color: rgb(255, 204, 204);
+            color: #cc3131;
+        }
+        .menu {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f3f3f3;
+            border-bottom: 1px solid #ccc;
+        }
+        .menu a {
+            text-decoration: none;
+            color: #007bff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .menu a:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+        .copy-url {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .copy-url input[type="text"] {
+            flex: 1;
+            margin-right: 10px;
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .copy-url button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .copy-url button:hover {
+            background-color: rgb(204, 226, 255);
+            color: #007bff;
+        }
     </style>
 </head>
 <body>
+    <div class="menu">
+        <a href="{{ url_for('index') }}">Home</a>
+        <div>
+            <a href="{{ url_for('create_pixel') }}">Create Pixel</a>
+            <a href="{{ url_for('view_pixels') }}">View Pixels</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </div>
+    </div>
     <h2>View Pixels</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
     {% for pixel in pixels %}
         <h3>{{ pixel.pixel_tag }}</h3>
+        <div class="copy-url">
+            <input type="text" value="&lt;img src=&quot;{{ url }}{{ url_for('pixel', pixel_tag=pixel.pixel_tag) }}&quot; /&gt;" readonly>
+            <button onclick="copyUrl(this)">Copy URL</button>
+        </div>
+        <a id="delete" href="{{ url_for('delete_pixel', pixel_id=pixel.id) }}">Delete</a>
         <table>
             <thead>
                 <tr>
@@ -44,5 +123,33 @@
             </tbody>
         </table>
     {% endfor %}
+
+    <script>
+        function copyUrl(button) {
+            const input = button.parentElement.querySelector('input[type="text"]');
+            input.select();
+            document.execCommand("copy");
+            
+            // Create a custom popup element
+            const popup = document.createElement("div");
+            popup.textContent = "URL copied to clipboard!";
+            popup.style.backgroundColor = "rgba(0, 0, 0, 0.7)";
+            popup.style.color = "#fff";
+            popup.style.borderRadius = "5px";
+            popup.style.padding = "30px 30px";
+            popup.style.position = "fixed";
+            popup.style.top = "50%";
+            popup.style.left = "50%";
+            popup.style.transform = "translate(-50%, -50%)";
+            popup.style.zIndex = "9999";
+            document.body.appendChild(popup);
+            
+            // Hide the popup after 2 seconds
+            setTimeout(function() {
+                popup.style.display = "none";
+            }, 1500);
+        }
+    </script>
+    
 </body>
 </html>

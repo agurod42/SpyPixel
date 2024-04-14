@@ -1,10 +1,11 @@
-from src import app, db, bcrypt, login_manager
+from src import app, db, bcrypt, login_manager, domain_name
 from src.models import User, Role, SpyPixel, Log
 from flask import send_file, request, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 import datetime
 import urllib.request
 import json
+import os
 
 # ----------------- User Authentication -----------------
 
@@ -39,7 +40,7 @@ def index():
     if current_user.is_authenticated and current_user.role.name == 'admin':
         return render_template('index.html', current_user=current_user)
     else:
-        return render_template('index.html')
+        return render_template('login.html')
     
 
 
@@ -73,8 +74,9 @@ def create_pixel():
 @app.route('/view_pixels')
 @login_required
 def view_pixels():
+    dn = domain_name
     pixels = SpyPixel.query.filter_by(user_id=current_user.id).all()
-    return render_template('view_pixels.html', pixels=pixels, current_user=current_user)
+    return render_template('view_pixels.html', pixels=pixels, current_user=current_user, url=dn)
 
 
 @app.route('/pixel/<pixel_tag>')
@@ -120,6 +122,33 @@ def pixel(pixel_tag):
     
     # Serve the pixel.png image
     return send_file(f'/app/src/media/{pixel_tag}_pixel.png', mimetype='image/png')
+
+# delete pixel.id
+@app.route('/delete_pixel/<int:pixel_id>')
+@login_required
+def delete_pixel(pixel_id):
+    pixel = SpyPixel.query.get(pixel_id)
+    if pixel:
+        # Delete the logs associated with the spypixel
+        logs = Log.query.filter_by(spy_pixel_id=pixel_id).all()
+        for log in logs:
+            db.session.delete(log)
+
+        # Delete the pixel.png image
+        try:
+            with open(f'/app/src/media/{pixel.pixel_tag}_pixel.png', 'rb') as f:
+                pass
+        except FileNotFoundError:
+            return 'Pixel image not found', 404
+        else:
+            os.remove(f'/app/src/media/{pixel.pixel_tag}_pixel.png')
+    
+        # Delete the spypixel
+        db.session.delete(pixel)
+        db.session.commit()
+
+        flash('Pixel deleted!', 'success')
+    return redirect(url_for('view_pixels'))
 
 if __name__ == '__main__':
     app.run()
