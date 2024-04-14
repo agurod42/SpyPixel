@@ -10,7 +10,7 @@ Spypixel is a lightweight spy pixel server crafted using Flask and SQLite, desig
 
 ### .env
 
-Create a .env file in the src/ directory with the following variables:
+Create a `.env` file in the `src/` directory with the following variables:
 
 ```bash
 SECRET_KEY=your_secret_key
@@ -35,7 +35,7 @@ docker run -p 5000:5000 -v .:/app spypixel
 
 #### Create a pixel
 
-![create a pixel](create_pixel.png)
+![create a pixel](create_p1xel.png)
 
 #### View pixels
 
