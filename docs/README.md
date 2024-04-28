@@ -80,4 +80,3 @@ Here are some screenshots showcasing SpyPixel's user interface and functionality
 
 ---
 We hope you find SpyPixel useful. If you have any questions or would like to contribute, feel free to open an issue or submit a pull request.
-Enhance your tracking capabilities effortlessly with SpyPixel!
