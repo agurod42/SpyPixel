@@ -5,8 +5,15 @@ WORKDIR /app
 COPY . .
 
 # Install dependencies
-RUN pip install --no-cache-dir python-dotenv gunicorn\
-    flask flask-login flask-bcrypt flask-sqlalchemy flask-migrate
+RUN pip install --no-cache-dir \
+    flask \
+    flask-bcrypt \
+    flask-login \
+    flask-migrate \
+    flask-sqlalchemy \
+    gunicorn \
+    psycopg2-binary \
+    python-dotenv
 
 EXPOSE 5000
 
